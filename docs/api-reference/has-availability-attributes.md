@@ -13,15 +13,40 @@ Trait
 
 ## Rôle principal
 
-Ce trait ajoute quatre attributs Eloquent à un modèle, permettant de vérifier la disponibilité d'une entité sans duplication de code. Il s'appuie sur le package **Laravel Chronos** pour effectuer les calculs.
+Ce trait ajoute une relation Eloquent et quatre attributs Eloquent à un modèle, permettant de vérifier la disponibilité d'une entité sans duplication de code. Il s'appuie sur le package **Laravel Chronos** pour effectuer les calculs.
 
-Les attributs disponibles sont :
+La relation et les attributs disponibles sont :
+- `availabilities` : Relation polymorphique vers les disponibilités
 - `is_available_now` : Indique si l'entité est disponible maintenant
 - `next_slot` : Prochain créneau disponible
 - `has_availability_on_date` : Indique si l'entité a des disponibilités aujourd'hui
 - `total_available_minutes` : Total des minutes disponibles aujourd'hui
 
 ## API / Méthodes publiques
+
+### `availabilities(): MorphMany`
+
+Retourne la relation polymorphique vers les disponibilités.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| Aucun | - | - |
+
+**Retourne :** `MorphMany<Availability>` - Instance de la relation
+
+**Exceptions :** Aucune
+
+**Exemple :**
+```php
+$doctor = Doctor::find(1);
+$availabilities = $doctor->availabilities;
+
+foreach ($availabilities as $availability) {
+    echo $availability->name;
+}
+```
+
+---
 
 ### `isAvailableNow(): Attribute`
 
@@ -164,7 +189,7 @@ return view('doctor.profile', [
 $pharmacy = Pharmacy::find(1);
 
 $status = $pharmacy->has_availability_on_date
-    ? 'Ouverte aujourd'hui'
+    ? 'Ouverte aujourd\'hui'
     : 'Fermée aujourd\'hui';
 
 $hours = $pharmacy->total_available_minutes / 60;
@@ -181,7 +206,22 @@ echo "{$status} - {$hours}h de disponibilité";
 $doctors = Doctor::all()->filter(fn($doctor) => $doctor->has_availability_on_date);
 ```
 
-### Cas 4 : Surcharge de `isSchedulable()` pour des conditions métier
+### Cas 4 : Récupération des disponibilités d'un modèle
+
+**Problème :** Récupérer toutes les disponibilités d'un médecin.
+
+**Solution :** Utiliser la relation `availabilities()`.
+
+```php
+$doctor = Doctor::find(1);
+$availabilities = $doctor->availabilities;
+
+foreach ($availabilities as $availability) {
+    echo $availability->name . ' : ' . $availability->daily_start . ' - ' . $availability->daily_end;
+}
+```
+
+### Cas 5 : Surcharge de `isSchedulable()` pour des conditions métier
 
 **Problème :** Un médecin ne doit être planifiable que s'il est actif et accepte de nouveaux patients.
 
@@ -310,6 +350,9 @@ $availabilityService->for($doctor)->create(
     ])
 );
 
+// Récupération des disponibilités
+$availabilities = $doctor->availabilities;
+
 // Récupération des données
 echo $doctor->is_available_now;        // true (si actuellement dans les horaires)
 $nextSlot = $doctor->next_slot;         // SlotVO
@@ -324,3 +367,5 @@ echo $doctor->total_available_minutes;  // 480 (8 heures)
 - `SlotServiceInterface` - Service de recherche de créneaux
 - `ChronosConfigInterface` - Configuration du moteur de planification
 - `SlotVO` - Value Object représentant un créneau
+- `Availability` - Modèle de disponibilité
+```

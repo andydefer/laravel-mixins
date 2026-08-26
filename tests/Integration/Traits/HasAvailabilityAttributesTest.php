@@ -17,12 +17,9 @@ use AndyDefer\LaravelChronos\ValueObjects\TimeZuluVO;
 use AndyDefer\Mixins\Tests\Fixtures\Models\TestCar;
 use AndyDefer\Mixins\Tests\IntegrationTestCase;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 final class HasAvailabilityAttributesTest extends IntegrationTestCase
 {
-    use RefreshDatabase;
-
     private TestCar $testCar;
 
     private AvailabilityServiceInterface $availabilityService;
@@ -57,6 +54,24 @@ final class HasAvailabilityAttributesTest extends IntegrationTestCase
     {
         Carbon::setTestNow(null);
         parent::tearDown();
+    }
+
+    // ============================================================
+    // TESTS: availabilities relationship
+    // ============================================================
+
+    public function test_availabilities_relationship_returns_collection(): void
+    {
+        // Arrange
+        $this->createAvailabilityForCar($this->testCar, '09:00:00', '17:00:00');
+
+        // Act
+        $availabilities = $this->testCar->availabilities;
+
+        // Assert
+        $this->assertCount(1, $availabilities);
+        $this->assertInstanceOf(Availability::class, $availabilities->first());
+        $this->assertEquals('Test Availability', $availabilities->first()->name);
     }
 
     // ============================================================
@@ -282,7 +297,7 @@ final class HasAvailabilityAttributesTest extends IntegrationTestCase
                 'schedulable_id' => $this->testCar->id,
                 'title' => 'Blocking schedule',
                 'start_datetime' => '2024-01-15 09:00:00',
-                'end_datetime' => '2024-01-15 11:00:00', // ✅ Bloque 2 heures
+                'end_datetime' => '2024-01-15 11:00:00',
             ]);
         });
 
@@ -290,7 +305,7 @@ final class HasAvailabilityAttributesTest extends IntegrationTestCase
         $totalMinutes = $this->testCar->total_available_minutes;
 
         // Assert
-        $this->assertEquals(60, $totalMinutes); // 11:00 - 12:00 = 60 minutes
+        $this->assertEquals(60, $totalMinutes);
     }
 
     public function test_total_available_minutes_returns_zero_when_model_is_not_schedulable(): void

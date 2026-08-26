@@ -8,10 +8,12 @@ namespace AndyDefer\Mixins\Traits;
 
 use AndyDefer\LaravelChronos\Contracts\Configs\ChronosConfigInterface;
 use AndyDefer\LaravelChronos\Contracts\Services\SlotServiceInterface;
+use AndyDefer\LaravelChronos\Models\Availability;
 use AndyDefer\LaravelChronos\ValueObjects\DateTimeZuluVO;
 use AndyDefer\LaravelChronos\ValueObjects\SlotVO;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * Provides Eloquent attributes for checking availability and slot information.
@@ -29,6 +31,16 @@ use Illuminate\Database\Eloquent\Model;
  */
 trait HasAvailabilityAttributes
 {
+    /**
+     * Define the polymorphic relationship to availabilities.
+     *
+     * @return MorphMany<Availability>
+     */
+    public function availabilities(): MorphMany
+    {
+        return $this->morphMany(Availability::class, 'schedulable');
+    }
+
     /**
      * Get whether the model is currently available.
      *
