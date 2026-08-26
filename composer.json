@@ -1,0 +1,43 @@
+{
+    "name": "andydefer/laravel-mixins",
+    "description": "A collection of reusable Laravel model traits for availability, ratings, and more",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andy Defer",
+            "email": "andykanidimbu@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^12.0|^13.0|^14.0|^15.0",
+        "andydefer/laravel-chronos": "^0.6.0",
+        "andydefer/laravel-ratings": "^1.3"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0|^12.0",
+        "mockery/mockery": "^1.6",
+        "laravel/pint": "^1.29"
+    },
+    "autoload": {
+        "psr-4": {
+            "AndyDefer\\Mixins\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AndyDefer\\Mixins\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AndyDefer\\Mixins\\MixinsServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
