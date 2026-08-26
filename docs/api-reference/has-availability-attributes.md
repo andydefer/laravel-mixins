@@ -13,10 +13,11 @@ Trait
 
 ## Rôle principal
 
-Ce trait ajoute une relation Eloquent et quatre attributs Eloquent à un modèle, permettant de vérifier la disponibilité d'une entité sans duplication de code. Il s'appuie sur le package **Laravel Chronos** pour effectuer les calculs.
+Ce trait ajoute une relation Eloquent et cinq attributs Eloquent à un modèle, permettant de vérifier la disponibilité d'une entité sans duplication de code. Il s'appuie sur le package **Laravel Chronos** pour effectuer les calculs.
 
 La relation et les attributs disponibles sont :
-- `availabilities` : Relation polymorphique vers les disponibilités
+- `availabilities` : Relation polymorphique vers toutes les disponibilités
+- `active_availabilities` : Relation polymorphique vers les disponibilités actives aujourd'hui
 - `is_available_now` : Indique si l'entité est disponible maintenant
 - `next_slot` : Prochain créneau disponible
 - `has_availability_on_date` : Indique si l'entité a des disponibilités aujourd'hui
@@ -26,7 +27,7 @@ La relation et les attributs disponibles sont :
 
 ### `availabilities(): MorphMany`
 
-Retourne la relation polymorphique vers les disponibilités.
+Retourne la relation polymorphique vers toutes les disponibilités.
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
@@ -43,6 +44,30 @@ $availabilities = $doctor->availabilities;
 
 foreach ($availabilities as $availability) {
     echo $availability->name;
+}
+```
+
+---
+
+### `activeAvailabilities(): Attribute`
+
+Retourne un attribut Eloquent qui fournit les disponibilités actives pour aujourd'hui.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| Aucun | - | - |
+
+**Retourne :** `Attribute<Collection<int, Availability>>` - Attribut Eloquent retournant une collection
+
+**Exceptions :** Aucune (les erreurs sont capturées et retournent une collection vide)
+
+**Exemple :**
+```php
+$doctor = Doctor::find(1);
+$activeAvailabilities = $doctor->active_availabilities;
+
+foreach ($activeAvailabilities as $availability) {
+    echo $availability->name . ' - ' . $availability->daily_start . ' à ' . $availability->daily_end;
 }
 ```
 
@@ -206,22 +231,37 @@ echo "{$status} - {$hours}h de disponibilité";
 $doctors = Doctor::all()->filter(fn($doctor) => $doctor->has_availability_on_date);
 ```
 
-### Cas 4 : Récupération des disponibilités d'un modèle
+### Cas 4 : Récupération des disponibilités actives d'un modèle
 
-**Problème :** Récupérer toutes les disponibilités d'un médecin.
+**Problème :** Récupérer uniquement les disponibilités actives d'un médecin.
+
+**Solution :** Utiliser l'attribut `active_availabilities`.
+
+```php
+$doctor = Doctor::find(1);
+$activeAvailabilities = $doctor->active_availabilities;
+
+foreach ($activeAvailabilities as $availability) {
+    echo $availability->name . ' : ' . $availability->daily_start . ' - ' . $availability->daily_end;
+}
+```
+
+### Cas 5 : Récupération de toutes les disponibilités d'un modèle
+
+**Problème :** Récupérer toutes les disponibilités d'un médecin (y compris les expirées).
 
 **Solution :** Utiliser la relation `availabilities()`.
 
 ```php
 $doctor = Doctor::find(1);
-$availabilities = $doctor->availabilities;
+$allAvailabilities = $doctor->availabilities;
 
-foreach ($availabilities as $availability) {
+foreach ($allAvailabilities as $availability) {
     echo $availability->name . ' : ' . $availability->daily_start . ' - ' . $availability->daily_end;
 }
 ```
 
-### Cas 5 : Surcharge de `isSchedulable()` pour des conditions métier
+### Cas 6 : Surcharge de `isSchedulable()` pour des conditions métier
 
 **Problème :** Un médecin ne doit être planifiable que s'il est actif et accepte de nouveaux patients.
 
@@ -251,16 +291,18 @@ protected function isSchedulable(): bool
 
 ### Avec Laravel Chronos
 
-Ce trait utilise le `SlotService` et `ChronosConfig` du package `andydefer/laravel-chronos`.
+Ce trait utilise le `SlotService`, `AvailabilityService` et `ChronosConfig` du package `andydefer/laravel-chronos`.
 
 ```php
 $slotService = app(SlotServiceInterface::class);
+$availabilityService = app(AvailabilityServiceInterface::class);
 $config = app(ChronosConfigInterface::class);
 $duration = $config->getMinSlotSearchDuration();
 
 $slots = $slotService->findSlotsForDay($this, DateTimeZuluVO::today(), $duration);
 $nextSlot = $slotService->findNextSlot($this, DateTimeZuluVO::now(), $duration);
 $hasAvailability = $slotService->hasAvailabilityOnDate($this, DateTimeZuluVO::today());
+$activeAvailabilities = $availabilityService->findActiveAtDate($this, DateTimeZuluVO::today());
 ```
 
 ### Avec un modèle Eloquent
@@ -299,6 +341,7 @@ public function nextSlot(): Attribute
 ```
 
 - **Requêtes :** `findSlotsForDay()` peut être lourd sur de grandes périodes. La configuration `chronos.default_search_days` limite la recherche.
+- **activeAvailabilities** : Utilise `AvailabilityService::findActiveAtDate()` qui est optimisé avec des index sur `validity_start` et `validity_end`.
 
 ## Compatibilité
 
@@ -350,8 +393,8 @@ $availabilityService->for($doctor)->create(
     ])
 );
 
-// Récupération des disponibilités
-$availabilities = $doctor->availabilities;
+// Récupération des disponibilités actives
+$activeAvailabilities = $doctor->active_availabilities;
 
 // Récupération des données
 echo $doctor->is_available_now;        // true (si actuellement dans les horaires)
@@ -365,7 +408,7 @@ echo $doctor->total_available_minutes;  // 480 (8 heures)
 - `HasRatingAttributes` - Attributs d'évaluation
 - `Laravel Chronos` - Moteur de planification
 - `SlotServiceInterface` - Service de recherche de créneaux
+- `AvailabilityServiceInterface` - Service de gestion des disponibilités
 - `ChronosConfigInterface` - Configuration du moteur de planification
 - `SlotVO` - Value Object représentant un créneau
 - `Availability` - Modèle de disponibilité
-```

@@ -17,9 +17,13 @@ use AndyDefer\LaravelChronos\ValueObjects\TimeZuluVO;
 use AndyDefer\Mixins\Tests\Fixtures\Models\TestCar;
 use AndyDefer\Mixins\Tests\IntegrationTestCase;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 
 final class HasAvailabilityAttributesTest extends IntegrationTestCase
 {
+    use RefreshDatabase;
+
     private TestCar $testCar;
 
     private AvailabilityServiceInterface $availabilityService;
@@ -72,6 +76,91 @@ final class HasAvailabilityAttributesTest extends IntegrationTestCase
         $this->assertCount(1, $availabilities);
         $this->assertInstanceOf(Availability::class, $availabilities->first());
         $this->assertEquals('Test Availability', $availabilities->first()->name);
+    }
+
+    // ============================================================
+    // TESTS: activeAvailabilities
+    // ============================================================
+
+    public function test_active_availabilities_returns_active_availabilities(): void
+    {
+        // Arrange
+        $this->createAvailabilityForCar($this->testCar, '09:00:00', '17:00:00');
+
+        // Act
+        $activeAvailabilities = $this->testCar->active_availabilities;
+
+        // Assert
+        $this->assertCount(1, $activeAvailabilities);
+        $this->assertInstanceOf(Availability::class, $activeAvailabilities->first());
+        $this->assertEquals('Test Availability', $activeAvailabilities->first()->name);
+    }
+
+    public function test_active_availabilities_returns_only_active_availabilities(): void
+    {
+        // Arrange
+        // Créer une disponibilité active (valide aujourd'hui)
+        $this->createAvailabilityForCar($this->testCar, '09:00:00', '17:00:00');
+
+        // Créer une disponibilité inactive (validité expirée) sur un jour différent
+        $record = AvailabilityRecord::from([
+            'name' => 'Expired Availability',
+            'type' => 'test',
+            'days' => ['tuesday'], // ✅ Jour différent pour éviter le chevauchement
+            'daily_start' => TimeZuluVO::from('09:00:00'),
+            'daily_end' => TimeZuluVO::from('17:00:00'),
+            'validity_start' => '2024-01-01T00:00:00Z',
+            'validity_end' => '2024-01-10T23:59:59Z',
+            'schedulable_type' => TestCar::class,
+            'schedulable_id' => $this->testCar->id,
+        ]);
+
+        $this->availabilityService->create($record);
+
+        // Act
+        $activeAvailabilities = $this->testCar->active_availabilities;
+
+        // Assert
+        $this->assertCount(1, $activeAvailabilities);
+        $this->assertEquals('Test Availability', $activeAvailabilities->first()->name);
+    }
+
+    public function test_active_availabilities_returns_empty_collection_when_no_active_availabilities(): void
+    {
+        // Arrange
+        $record = AvailabilityRecord::from([
+            'name' => 'Expired Availability',
+            'type' => 'test',
+            'days' => ['monday'],
+            'daily_start' => TimeZuluVO::from('09:00:00'),
+            'daily_end' => TimeZuluVO::from('17:00:00'),
+            'validity_start' => '2024-01-01T00:00:00Z',
+            'validity_end' => '2024-01-10T23:59:59Z',
+            'schedulable_type' => TestCar::class,
+            'schedulable_id' => $this->testCar->id,
+        ]);
+
+        $this->availabilityService->create($record);
+
+        // Act
+        $activeAvailabilities = $this->testCar->active_availabilities;
+
+        // Assert
+        $this->assertCount(0, $activeAvailabilities);
+        $this->assertInstanceOf(Collection::class, $activeAvailabilities);
+    }
+
+    public function test_active_availabilities_returns_empty_collection_when_model_is_not_schedulable(): void
+    {
+        // Arrange
+        $this->testCar->isSchedulable = false;
+
+        // Act
+        $activeAvailabilities = $this->testCar->active_availabilities;
+
+        // Assert
+        $this->assertCount(0, $activeAvailabilities);
+        $this->assertInstanceOf(Collection::class, $activeAvailabilities);
     }
 
     // ============================================================

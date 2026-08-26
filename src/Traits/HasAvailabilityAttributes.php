@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace AndyDefer\Mixins\Traits;
 
 use AndyDefer\LaravelChronos\Contracts\Configs\ChronosConfigInterface;
+use AndyDefer\LaravelChronos\Contracts\Services\AvailabilityServiceInterface;
 use AndyDefer\LaravelChronos\Contracts\Services\SlotServiceInterface;
 use AndyDefer\LaravelChronos\Models\Availability;
 use AndyDefer\LaravelChronos\ValueObjects\DateTimeZuluVO;
@@ -14,6 +15,7 @@ use AndyDefer\LaravelChronos\ValueObjects\SlotVO;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 
 /**
  * Provides Eloquent attributes for checking availability and slot information.
@@ -28,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property-read SlotVO|null $next_slot The next available slot
  * @property-read bool $has_availability_on_date Whether the model has availability today
  * @property-read int $total_available_minutes Total available minutes for today
+ * @property-read Collection<int, Availability> $active_availabilities Active availabilities for today
  */
 trait HasAvailabilityAttributes
 {
@@ -39,6 +42,34 @@ trait HasAvailabilityAttributes
     public function availabilities(): MorphMany
     {
         return $this->morphMany(Availability::class, 'schedulable');
+    }
+
+    /**
+     * Get the active availabilities for today.
+     *
+     * @return Attribute<Collection<int, Availability>>
+     */
+    public function activeAvailabilities(): Attribute
+    {
+        return Attribute::make(
+            get: function (): Collection {
+                /** @var Model $this */
+                if (! $this->isSchedulable()) {
+                    return new Collection;
+                }
+
+                try {
+                    $availabilityService = app(AvailabilityServiceInterface::class);
+
+                    return $availabilityService->findActiveAtDate(
+                        $this,
+                        DateTimeZuluVO::today()
+                    );
+                } catch (\Exception) {
+                    return new Collection;
+                }
+            }
+        );
     }
 
     /**
