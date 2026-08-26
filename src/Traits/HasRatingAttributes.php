@@ -10,8 +10,29 @@ use AndyDefer\LaravelRatings\Services\RatingService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Provides Eloquent attributes for rating information.
+ *
+ * This trait adds convenient accessors to any model that can be rated
+ * (Doctor, Pharmacy, Hospital, Product, etc.). It uses Laravel Ratings
+ * to calculate average ratings and counts.
+ *
+ * @mixin Model
+ *
+ * @property-read float $average_rating The average rating (0.0 if no ratings)
+ * @property-read int $rating_count The total number of ratings (0 if none)
+ * @property-read array<int, int> $rating_distribution Distribution of ratings by level (1-5)
+ * @property-read bool $has_ratings True if the model has at least one rating
+ */
 trait HasRatingAttributes
 {
+    /**
+     * Get the average rating for this model.
+     *
+     * Calculates the average of all ratings associated with this model.
+     *
+     * @return Attribute<float>
+     */
     public function averageRating(): Attribute
     {
         return Attribute::make(
@@ -24,14 +45,19 @@ trait HasRatingAttributes
                 try {
                     $ratingService = app(RatingService::class);
 
-                    return $ratingService->getAverageRating($this);
-                } catch (\Exception $e) {
+                    return (float) $ratingService->getAverageRating($this);
+                } catch (\Exception) {
                     return 0.0;
                 }
             }
         );
     }
 
+    /**
+     * Get the total number of ratings for this model.
+     *
+     * @return Attribute<int>
+     */
     public function ratingCount(): Attribute
     {
         return Attribute::make(
@@ -45,13 +71,20 @@ trait HasRatingAttributes
                     $ratingService = app(RatingService::class);
 
                     return $ratingService->countRatings($this);
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     return 0;
                 }
             }
         );
     }
 
+    /**
+     * Get the distribution of ratings by level.
+     *
+     * Returns an array where keys are rating levels (1-5) and values are counts.
+     *
+     * @return Attribute<array<int, int>>
+     */
     public function ratingDistribution(): Attribute
     {
         return Attribute::make(
@@ -65,13 +98,18 @@ trait HasRatingAttributes
                     $ratingService = app(RatingService::class);
 
                     return $ratingService->getRatingDistribution($this);
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     return [];
                 }
             }
         );
     }
 
+    /**
+     * Determine if this model has any ratings.
+     *
+     * @return Attribute<bool>
+     */
     public function hasRatings(): Attribute
     {
         return Attribute::make(
@@ -85,7 +123,7 @@ trait HasRatingAttributes
                     $ratingService = app(RatingService::class);
 
                     return $ratingService->countRatings($this) > 0;
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     return false;
                 }
             }
@@ -93,8 +131,11 @@ trait HasRatingAttributes
     }
 
     /**
-     * Check if the model is rateable.
-     * Override this method in your model if needed.
+     * Determine if the model can be rated.
+     *
+     * Override this method in your model to add custom conditions.
+     *
+     * @return bool True if the model is rateable
      */
     protected function isRateable(): bool
     {

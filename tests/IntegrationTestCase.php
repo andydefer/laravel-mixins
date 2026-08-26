@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AndyDefer\Mixins\Tests;
 
+use AndyDefer\Directive\Helpers\Paths;
+use AndyDefer\LaravelChronos\Providers\LaravelChronosServiceProvider;
 use AndyDefer\LaravelCluster\Providers\ClusterServiceProvider;
 use AndyDefer\Mixins\MixinsServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -14,6 +16,7 @@ abstract class IntegrationTestCase extends Orchestra
     {
         return [
             ClusterServiceProvider::class,
+            LaravelChronosServiceProvider::class,
             MixinsServiceProvider::class,
         ];
     }
@@ -26,6 +29,10 @@ abstract class IntegrationTestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
+
+        // Configuration Chronos pour les tests
+        $app['config']->set('chronos.min_durations.slot_search', 30);
+        $app['config']->set('chronos.default_search_days', 30);
     }
 
     protected function setUp(): void
@@ -42,9 +49,16 @@ abstract class IntegrationTestCase extends Orchestra
 
     protected function runMigrations(): void
     {
-        $migrationPath = __DIR__.'/Fixtures/migrations';
-        if (is_dir($migrationPath)) {
-            $this->loadMigrationsFrom($migrationPath);
+        $packagePaths = [
+            __DIR__.'/Fixtures/migrations',
+            Paths::packageRoot().'/../laravel-chronos/database/migrations',
+            Paths::packageRoot().'/../laravel-ratings/database/migrations',
+        ];
+
+        foreach ($packagePaths as $path) {
+            if (is_dir($path)) {
+                $this->loadMigrationsFrom($path);
+            }
         }
     }
 }

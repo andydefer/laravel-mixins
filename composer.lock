@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "53cffe68027d4f26da2cb09ba5246875",
+    "content-hash": "4c93aab11a1c1c09d5ae3bcf4da48e4b",
     "packages": [
         {
             "name": "andydefer/algo-kit",
@@ -169,16 +169,16 @@
         },
         {
             "name": "andydefer/laravel-chronos",
-            "version": "v0.6.0",
+            "version": "v0.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/andydefer/laravel-chronos.git",
-                "reference": "24e068e923809970ab9dbeb7838711ceb83c1144"
+                "reference": "9bc4fc524539ecceab7e611360aa9d49191d5daf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/andydefer/laravel-chronos/zipball/24e068e923809970ab9dbeb7838711ceb83c1144",
-                "reference": "24e068e923809970ab9dbeb7838711ceb83c1144",
+                "url": "https://api.github.com/repos/andydefer/laravel-chronos/zipball/9bc4fc524539ecceab7e611360aa9d49191d5daf",
+                "reference": "9bc4fc524539ecceab7e611360aa9d49191d5daf",
                 "shasum": ""
             },
             "require": {
@@ -232,9 +232,9 @@
             ],
             "support": {
                 "issues": "https://github.com/andydefer/laravel-chronos/issues",
-                "source": "https://github.com/andydefer/laravel-chronos/tree/v0.6.0"
+                "source": "https://github.com/andydefer/laravel-chronos/tree/v0.6.1"
             },
-            "time": "2026-08-25T15:50:28+00:00"
+            "time": "2026-08-26T14:41:03+00:00"
         },
         {
             "name": "andydefer/laravel-cluster",
@@ -564,13 +564,13 @@
             "extra": {
                 "laravel": {
                     "providers": [
-                        "AndyDefer\\Mixins\\MixinsServiceProvider"
+                        "AndyDefer\\Repository\\RepositoryServiceProvider"
                     ]
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "AndyDefer\\Mixins\\": "src/"
+                    "AndyDefer\\Repository\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",

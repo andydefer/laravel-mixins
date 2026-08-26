@@ -21,6 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  * availability and find available time slots.
  *
  * @mixin Model
+ *
+ * @property-read bool $is_available_now Whether the model is currently available
+ * @property-read SlotVO|null $next_slot The next available slot
+ * @property-read bool $has_availability_on_date Whether the model has availability today
+ * @property-read int $total_available_minutes Total available minutes for today
  */
 trait HasAvailabilityAttributes
 {
@@ -28,6 +33,8 @@ trait HasAvailabilityAttributes
      * Get whether the model is currently available.
      *
      * Checks if the current time falls within any available slot for today.
+     *
+     * @return Attribute<bool>
      */
     public function isAvailableNow(): Attribute
     {
@@ -70,7 +77,7 @@ trait HasAvailabilityAttributes
      *
      * Searches for the next available slot starting from the current time.
      *
-     * @return SlotVO|null The next available slot, or null if none found
+     * @return Attribute<SlotVO|null>
      */
     public function nextSlot(): Attribute
     {
@@ -102,6 +109,8 @@ trait HasAvailabilityAttributes
      * Get whether the model has any availability on today's date.
      *
      * Checks if any availability record exists for the current date.
+     *
+     * @return Attribute<bool>
      */
     public function hasAvailabilityOnDate(): Attribute
     {
@@ -131,7 +140,7 @@ trait HasAvailabilityAttributes
      *
      * Sums all available slots durations for the current date.
      *
-     * @return int Total available minutes
+     * @return Attribute<int>
      */
     public function totalAvailableMinutes(): Attribute
     {
