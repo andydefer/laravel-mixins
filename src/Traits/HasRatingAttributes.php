@@ -6,9 +6,12 @@ declare(strict_types=1);
 
 namespace AndyDefer\Mixins\Traits;
 
+use AndyDefer\LaravelRatings\Models\Rating;
 use AndyDefer\LaravelRatings\Services\RatingService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * Provides Eloquent attributes for rating information.
@@ -23,9 +26,20 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read int $rating_count The total number of ratings (0 if none)
  * @property-read array<int, int> $rating_distribution Distribution of ratings by level (1-5)
  * @property-read bool $has_ratings True if the model has at least one rating
+ * @property-read Collection<int, Rating> $ratings All ratings for this model
  */
 trait HasRatingAttributes
 {
+    /**
+     * Get all ratings for this model.
+     *
+     * @return MorphMany<Rating>
+     */
+    public function ratings(): MorphMany
+    {
+        return $this->morphMany(Rating::class, 'rateable');
+    }
+
     /**
      * Get the average rating for this model.
      *
