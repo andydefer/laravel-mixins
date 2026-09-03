@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace AndyDefer\Mixins\Tests\Fixtures\Models;
 
-use AndyDefer\Mixins\Proxies\AttributeProxy;
+use AndyDefer\Mixins\Traits\HasAddressAttributes;
 use AndyDefer\PhpVo\ValueObjects\CoordinatesVO;
 use AndyDefer\PhpVo\ValueObjects\SlugVO;
+use AndyDefer\Repository\Proxies\AttributeProxy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TestModel extends Model
 {
+    use HasAddressAttributes;
+
     protected $table = 'test_models';
 
     protected $fillable = [

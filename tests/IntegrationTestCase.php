@@ -53,6 +53,7 @@ abstract class IntegrationTestCase extends Orchestra
             __DIR__.'/Fixtures/migrations',
             Paths::packageRoot().'/../laravel-chronos/database/migrations',
             Paths::packageRoot().'/../laravel-ratings/database/migrations',
+            Paths::packageRoot().'/../laravel-addresses/database/migrations',
         ];
 
         foreach ($packagePaths as $path) {

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace AndyDefer\Mixins\Tests\Fixtures\Models;
 
 use AndyDefer\LaravelCluster\Casts\ClusterCast;
-use AndyDefer\Mixins\Proxies\AttributeProxy;
 use AndyDefer\Mixins\Tests\Fixtures\Collections\TestLanguageCollection;
 use AndyDefer\Mixins\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Mixins\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Mixins\Tests\Fixtures\Enums\TestUserStatus;
 use AndyDefer\Mixins\Tests\Fixtures\Records\TestUserRecord;
 use AndyDefer\Mixins\Tests\Fixtures\ValueObjects\TestSlug;
+use AndyDefer\Repository\Proxies\AttributeProxy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
