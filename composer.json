@@ -14,7 +14,7 @@
         "laravel/framework": "^12.0|^13.0|^14.0|^15.0",
         "andydefer/laravel-chronos": "^0.9.3",
         "andydefer/laravel-ratings": "^1.3.14",
-        "andydefer/laravel-addresses": "^2.3"
+        "andydefer/laravel-addresses": "^2.3.48"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",
